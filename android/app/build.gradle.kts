@@ -8,17 +8,16 @@ plugins {
 android {
     namespace = "com.example.salubrity"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = f"27.0.12077973"
+    ndkVersion = "27.0.12077973" 
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
+   compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
-    }
-
+kotlinOptions {
+    jvmTarget = "17"
+}
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.salubrity"
@@ -38,6 +37,7 @@ android {
         }
     }
 }
+
 
 flutter {
     source = "../.."

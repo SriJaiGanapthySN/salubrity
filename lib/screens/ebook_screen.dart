@@ -10,6 +10,9 @@ class EbookScreen extends StatefulWidget {
 
 class _EbookScreenState extends State<EbookScreen> {
   String? selectedPdf;
+  bool isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
+  List<Map<String, String>> filteredPdfList = [];
 
   final List<Map<String, String>> pdfList = [
     {'name': 'Thinking Straight', 'path': 'assets/pdfs/Book1.pdf'},
@@ -21,19 +24,68 @@ class _EbookScreenState extends State<EbookScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    filteredPdfList = List.from(pdfList);
+    _searchController.addListener(_filterPdfList);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterPdfList() {
+    String query = _searchController.text.toLowerCase();
+    setState(() {
+      if (query.isEmpty) {
+        filteredPdfList = List.from(pdfList);
+      } else {
+        filteredPdfList =
+            pdfList
+                .where((pdf) => pdf['name']!.toLowerCase().contains(query))
+                .toList();
+      }
+    });
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      isSearching = !isSearching;
+      if (!isSearching) {
+        _searchController.clear();
+        filteredPdfList = List.from(pdfList);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text(
-          selectedPdf != null ? 'PDF Viewer' : 'Ebooks Collection',
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-            fontSize: 20,
-          ),
-        ),
-        centerTitle: true,
+        title:
+            isSearching && selectedPdf == null
+                ? TextField(
+                  controller: _searchController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    hintText: 'Search ebooks...',
+                    hintStyle: TextStyle(color: Colors.white70),
+                    border: InputBorder.none,
+                  ),
+                  autofocus: true,
+                )
+                : Text(
+                  selectedPdf != null ? 'PDF Viewer' : 'Ebooks Collection',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    fontSize: 20,
+                  ),
+                ),
+        centerTitle: !isSearching,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -57,15 +109,21 @@ class _EbookScreenState extends State<EbookScreen> {
                     });
                   },
                 )
+                : isSearching
+                ? IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: _toggleSearch,
+                )
                 : null,
         actions:
             selectedPdf == null
                 ? [
                   IconButton(
-                    icon: const Icon(Icons.search, color: Colors.white),
-                    onPressed: () {
-                      // Search functionality can be added here
-                    },
+                    icon: Icon(
+                      isSearching ? Icons.close : Icons.search,
+                      color: Colors.white,
+                    ),
+                    onPressed: _toggleSearch,
                   ),
                 ]
                 : null,
@@ -159,128 +217,157 @@ class _EbookScreenState extends State<EbookScreen> {
                         ],
                       ),
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: GridView.builder(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio: 0.7,
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 20,
-                              ),
-                          itemCount: pdfList.length,
-                          itemBuilder: (context, index) {
-                            final pdf = pdfList[index];
-                            return Material(
-                              elevation: 2,
-                              shadowColor: Colors.grey.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(12),
-                              color: Colors.transparent,
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(12),
-                                onTap: () {
-                                  setState(() {
-                                    selectedPdf = pdf['path'];
-                                  });
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    color: Colors.white,
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        height: 140,
-                                        decoration: BoxDecoration(
-                                          borderRadius: const BorderRadius.only(
-                                            topLeft: Radius.circular(12),
-                                            topRight: Radius.circular(12),
-                                          ),
-                                          color: Color.lerp(
-                                            const Color(0xFFE1BEE7),
-                                            const Color(0xFFD1C4E9),
-                                            index % 2 == 0 ? 0.5 : 0.0,
-                                          ),
-                                        ),
-                                        child: Center(
-                                          child: Icon(
-                                            Icons.book,
-                                            size: 50,
-                                            color: const Color(0xFF673AB7),
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                          16,
-                                          16,
-                                          16,
-                                          8,
-                                        ),
-                                        child: Text(
-                                          pdf['name']!,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 16,
-                                            color: Color(0xFF4A148C),
-                                            height: 1.2,
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                          16,
-                                          0,
-                                          16,
-                                          16,
-                                        ),
-                                        child: TextButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              selectedPdf = pdf['path'];
-                                            });
-                                          },
-                                          style: TextButton.styleFrom(
-                                            backgroundColor: const Color(
-                                              0xFF673AB7,
-                                            ),
-                                            minimumSize: const Size(
-                                              double.infinity,
-                                              40,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            padding: EdgeInsets.zero,
-                                          ),
-                                          child: const Text(
-                                            'Read Now',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                    filteredPdfList.isEmpty
+                        ? const Expanded(
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.search_off,
+                                  size: 70,
+                                  color: Color(0xFFCFC6DB),
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  'No ebooks found',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Color(0xFF9E9E9E),
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                              ),
-                            );
-                          },
+                              ],
+                            ),
+                          ),
+                        )
+                        : Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: GridView.builder(
+                              padding: const EdgeInsets.only(bottom: 20),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    childAspectRatio: 0.7,
+                                    crossAxisSpacing: 16,
+                                    mainAxisSpacing: 20,
+                                  ),
+                              itemCount: filteredPdfList.length,
+                              itemBuilder: (context, index) {
+                                final pdf = filteredPdfList[index];
+                                return Material(
+                                  elevation: 2,
+                                  shadowColor: Colors.grey.withOpacity(0.3),
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(12),
+                                    onTap: () {
+                                      setState(() {
+                                        selectedPdf = pdf['path'];
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        color: Colors.white,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            height: 140,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  const BorderRadius.only(
+                                                    topLeft: Radius.circular(
+                                                      12,
+                                                    ),
+                                                    topRight: Radius.circular(
+                                                      12,
+                                                    ),
+                                                  ),
+                                              color: Color.lerp(
+                                                const Color(0xFFE1BEE7),
+                                                const Color(0xFFD1C4E9),
+                                                index % 2 == 0 ? 0.5 : 0.0,
+                                              ),
+                                            ),
+                                            child: Center(
+                                              child: Icon(
+                                                Icons.book,
+                                                size: 50,
+                                                color: const Color(0xFF673AB7),
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                              16,
+                                              16,
+                                              16,
+                                              8,
+                                            ),
+                                            child: Text(
+                                              pdf['name']!,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 16,
+                                                color: Color(0xFF4A148C),
+                                                height: 1.2,
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                              16,
+                                              0,
+                                              16,
+                                              16,
+                                            ),
+                                            child: TextButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  selectedPdf = pdf['path'];
+                                                });
+                                              },
+                                              style: TextButton.styleFrom(
+                                                backgroundColor: const Color(
+                                                  0xFF673AB7,
+                                                ),
+                                                minimumSize: const Size(
+                                                  double.infinity,
+                                                  40,
+                                                ),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                padding: EdgeInsets.zero,
+                                              ),
+                                              child: const Text(
+                                                'Read Now',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
                   ],
                 ),
               ),

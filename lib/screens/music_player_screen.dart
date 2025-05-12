@@ -255,11 +255,15 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen>
         ),
         child: Column(
           children: [
-            const SizedBox(height: kToolbarHeight + 16),
-            custom.SearchBar(
-              searchQuery: _searchQuery,
-              onSearchChanged: _handleSearch,
-              onClearSearch: _handleClearSearch,
+            Container(
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + kToolbarHeight,
+              ),
+              child: custom.SearchBar(
+                searchQuery: _searchQuery,
+                onSearchChanged: _handleSearch,
+                onClearSearch: _handleClearSearch,
+              ),
             ),
             Expanded(
               child:

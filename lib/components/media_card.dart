@@ -42,14 +42,7 @@ class MediaCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          onTap:
-              onTap ??
-              () {
-                // Default action if no onTap provided
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Opening $title content...')),
-                );
-              },
+
           child: Stack(
             children: [
               // Decorative pattern overlay
